@@ -179,7 +179,7 @@ def run():
                 
                 # Get the amount of fuel in the tank
                 combus = ((tanque - sum(vehicle_info[vehicle_id]["consumption_steps"])) / tanque)*100
-                combusLiters = tanque - sum(vehicle_info[vehicle_id]["consumption_steps"])
+                combus_liters = tanque - sum(vehicle_info[vehicle_id]["consumption_steps"])
 
                 goingToFueling = vehicle_info[vehicle_id]["isGoingToRefuel"]
                 
@@ -206,7 +206,7 @@ def run():
                         vehicle_fuel_error = vehicle_info[vehicle_id]["vehicle_fuel_error"]
                         random_refuel = random.uniform(10,30)
                         fraud = random.uniform(0,10)
-                        fuel = combusLiters + vehicle_fuel_error + random_refuel
+                        fuel = combus_liters + vehicle_fuel_error + random_refuel
                         real_refuel = fuel - fraud
                         vehicle_info[vehicle_id]["refuel_count"] += 1
                         refuel_info = {
