@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2023-08-29 23:16:02 by Eclipse SUMO netedit Version 1.18.0
+-->
+
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
+    <!-- StoppingPlaces -->
+    <parkingArea id="pa-101103849" lane="-101103849_0" roadsideCapacity="2" length="5.00"/>
+    <parkingArea id="pa-1049729600" lane="-1049729600_0" roadsideCapacity="27" length="5.00"/>
+    <parkingArea id="pa-125813719" lane="-125813719_0" roadsideCapacity="12" length="5.00"/>
+    <parkingArea id="pa-125814597" lane="-125814597_0" roadsideCapacity="1" length="5.00"/>
+    <parkingArea id="pa-125947334#1" lane="-125947334#1_0" roadsideCapacity="2" length="5.00"/>
+    <parkingArea id="pa-125947334#2" lane="-125947334#2_0" roadsideCapacity="1" length="5.00"/>
+    <parkingArea id="pa-125947335#0" lane="-125947335#0_0" roadsideCapacity="12" length="5.00"/>
+    <parkingArea id="pa-125947335#1" lane="-125947335#1_0" roadsideCapacity="3" length="5.00"/>
+    <parkingArea id="pa-125948399" lane="-125948399_0" roadsideCapacity="3" length="5.00"/>
+    <parkingArea id="pa-125948402" lane="-125948402_0" roadsideCapacity="46" length="5.00"/>
+    <parkingArea id="pa-162154275#0" lane="-162154275#0_0" roadsideCapacity="1" length="5.00"/>
+    <parkingArea id="pa-183715364#2" lane="-183715364#2_0" roadsideCapacity="6" length="5.00"/>
+    <parkingArea id="pa-183715367" lane="-183715367_0" roadsideCapacity="4" length="5.00"/>
+    <parkingArea id="pa-183715380#2" lane="-183715380#2_0" roadsideCapacity="4" length="5.00"/>
+    <parkingArea id="pa-183715382" lane="-183715382_0" roadsideCapacity="27" length="5.00"/>
+</additional>
