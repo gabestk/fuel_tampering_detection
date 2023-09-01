@@ -1,0 +1,11 @@
+[
+    {
+        "vehicle_id": 0,
+        "station_id": "-125813719",
+        "fraud": 9.125494480310383,
+        "vehicle_fuel_error": -4.784356655446144,
+        "refuel_amount": 10.107893365769831,
+        "fuel_with_fraud": 30.51101664339576,
+        "fuel_without_fraud": 39.63651112370614
+    }
+]

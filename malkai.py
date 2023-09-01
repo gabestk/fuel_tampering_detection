@@ -71,7 +71,7 @@ def checkStation(id, combustivel):
     Returns:
         boolean: Fueling status of the vehicle
     """
-    if traci.vehicle.getRoadID(id) in stations and combustivel < 50:
+    if traci.vehicle.getRoadID(id) in stations and combustivel < 70:
         return True
 
 
@@ -114,7 +114,9 @@ def run():
         # Vehicle fuel dictionary
         vehicle_info = {}
         # Fuel tank capacity
-        tanque = 50
+        tanque1 = 50
+        tanque2 = 50
+        fuel_append = 0
 
         # Simulation Loop
         step = 0
@@ -178,13 +180,16 @@ def run():
                 """
                 
                 # Get the amount of fuel in the tank
-                combus = ((tanque - sum(vehicle_info[vehicle_id]["consumption_steps"])) / tanque)*100
-                combus_liters = tanque - sum(vehicle_info[vehicle_id]["consumption_steps"])
-
+                combus = ((tanque1 - sum(vehicle_info[vehicle_id]["consumption_steps"])) / tanque1)*100
+                real_combus_liters = tanque1 - sum(vehicle_info[vehicle_id]["consumption_steps"])
+                combus_liters_fraud = tanque2 - sum(vehicle_info[vehicle_id]["consumption_steps"])
+                print(real_combus_liters)
+                print(combus_liters_fraud)
+                
                 goingToFueling = vehicle_info[vehicle_id]["isGoingToRefuel"]
                 
                 # If the vehicle needs to refuel, sent to a fuel station
-                if combus < 50 and goingToFueling is False:
+                if combus < 70 and goingToFueling is False:
                     vehicle_info[vehicle_id]["isGoingToRefuel"] = True
                     fuelStation = sendFuel(vehicle_id, None)
                     vehicle_info[vehicle_id]["fuel_station"] = fuelStation
@@ -192,8 +197,7 @@ def run():
                 if goingToFueling:
                     sendFuel(vehicle_id, vehicle_info[vehicle_id]["fuel_station"])
 
-                # Checks if the vehicle is currently in a fuel station and need
-                # to refuel
+                # Checks if the vehicle is currently in a fuel station and need to refuel
                 if checkStation(vehicle_id, combus):
                     vehicle_info[vehicle_id]["isGoingToRefuel"] = False
                     vehicle_info[vehicle_id]["fueling"] = True
@@ -202,12 +206,17 @@ def run():
                     vehicle_info[vehicle_id]["route_num"] += 1
 
                     if vehicle_info[vehicle_id]["fueling"] == True:
+                        print(real_combus_liters)
+                        print(combus_liters_fraud)
                         vehicle_info[vehicle_id]["fueling"] = False
                         vehicle_fuel_error = vehicle_info[vehicle_id]["vehicle_fuel_error"]
-                        random_refuel = random.uniform(10,30)
+                        random_refuel = random.uniform(10,25)
                         fraud = random.uniform(0,10)
-                        fuel = combus_liters + vehicle_fuel_error + random_refuel
-                        real_refuel = fuel - fraud
+                        real_combus_liters = real_combus_liters + vehicle_fuel_error + random_refuel
+                        real_refuel = combus_liters_fraud - fraud
+                        fuel_append = random_refuel - fraud + vehicle_fuel_error
+                        tanque1 = real_combus_liters + fuel_append
+                        tanque2 = real_refuel
                         vehicle_info[vehicle_id]["refuel_count"] += 1
                         refuel_info = {
                             "vehicle_id": int(vehicle_id),
@@ -216,9 +225,9 @@ def run():
                             "vehicle_fuel_error": vehicle_fuel_error,
                             "refuel_amount": random_refuel,
                             "fuel_with_fraud": real_refuel,
-                            "fuel_without_fraud": fuel,
+                            "fuel_without_fraud": real_combus_liters,
                         }
-                        
+                        print(real_combus_liters, combus_liters_fraud, fraud, random_refuel, vehicle_fuel_error, fuel_append)
                         vehicle_info[vehicle_id]["refuel_info"].append(refuel_info)
 
                 """
@@ -258,19 +267,12 @@ def run():
             step += 1
 
             # Condition to stop the simulation loop
-            if step > 100000:
+            if step > 10000:
                 break
     
         for vehicle_id, info in vehicle_info.items():
             fuel_data_list.extend(info["refuel_info"])
-            """
-            fuel_data_list.append([
-                "vehicle_id": int(vehicle_id),
-                "total_fuel_with_fraud": info["total_fuel_with_fraud"],
-                "total_fuel_without_fraud": info["total_fuel_without_fraud"],
-                "refuel_info": info["refuel_info"]
-            ])
-            """
+            
         for vehicle_id, info in vehicle_info.items():
             print(f"Vehicle {vehicle_id} refueled {info['refuel_count']} times.")
             
@@ -301,7 +303,7 @@ if __name__ == "__main__":
 
     # Start traci connection and set the parameters
     traci.start([sumoBinary, "-c", "osm.sumocfg", "--tripinfo-output",
-                "tripinfo.xml", "--max-num-vehicles", "30"])
+                "tripinfo.xml", "--max-num-vehicles", "1"])
 
     # Start the simulation loop
     run()
