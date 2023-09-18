@@ -24,7 +24,7 @@ def malkai(sorted_data):
 def gabriel(sorted_fuel_data):
     # Write a json file contining the fueling data related from all vehicles
     with open("vehicle_fueling_file.json", "w") as json_file:
-        json.dump(sorted_fuel_data, json_file, indent=4)
+        json.dump(sorted_fuel_data, json_file, indent=4, allow_nan=False)
 
 
 def get_options():
@@ -145,14 +145,13 @@ def run():
                         "refuel_info": [],
                         "fuel_percentage": 100,
                         "expected_fuel_percentage": 100,
-                        "fuel_remaining_no_fraud": tanque,
-                        "fuel_remaining_fraud": tanque,
+                        "expected_fuel_remaining": tanque,
+                        "real_fuel_remaining": tanque,
                         "route_num": 0,
                         "isGoingToRefuel": False,
                         "fueling": False,
                         "fuel_station": "",
-                        "vehicle_factory_error": random.uniform(-2,2),
-                        "refuel_count": 0
+                        "vehicle_factory_error": random.uniform(-2,2)
                     }
                 
                 """
@@ -177,8 +176,8 @@ def run():
 
                 # Add to consumption dictionary
                 vehicle_info[vehicle_id]["consumption_steps"].append(fuel_consumption_liters)
-                vehicle_info[vehicle_id]["fuel_remaining_no_fraud"] -= fuel_consumption_liters
-                vehicle_info[vehicle_id]["fuel_remaining_fraud"] -= fuel_consumption_liters
+                vehicle_info[vehicle_id]["expected_fuel_remaining"] -= fuel_consumption_liters
+                vehicle_info[vehicle_id]["real_fuel_remaining"] -= fuel_consumption_liters
                 vehicle_info[vehicle_id]["fuel_percentage"] -= fuel_consumption_percentage
                 vehicle_info[vehicle_id]["expected_fuel_percentage"] -= fuel_consumption_percentage
                 """
@@ -192,9 +191,6 @@ def run():
                 # Get the amount of fuel in the tank
                 combus_percentage = vehicle_info[vehicle_id]["fuel_percentage"]
                 expected_percentage = vehicle_info[vehicle_id]["expected_fuel_percentage"]
-                #combus_liters_no_fraud = vehicle_info[vehicle_id]["fuel_remaining_no_fraud"]
-                #combus_liters_fraud = vehicle_info[vehicle_id]["fuel_remaining_fraud"]
-                #print(combus_percentage, expected_percentage, combus_liters_no_fraud, combus_liters_fraud)
                 
                 goingToFueling = vehicle_info[vehicle_id]["isGoingToRefuel"]
                 
@@ -219,31 +215,30 @@ def run():
                         vehicle_info[vehicle_id]["fueling"] = False
                         vehicle_factory_error = vehicle_info[vehicle_id]["vehicle_factory_error"] # Get the factory error from vehicle's fuel tank
                         vehicle_random_error = random.uniform(-3,3) # Get a random error to simulate the moment of fueling, such as expansion, fuel moving, etc.
-                        random_refuel = random.uniform(5,15) # Get a random refuel amount
-                        fraud = random.uniform(0,10) # Get a random fraud from this refuel
-                        refuel_no_fraud = vehicle_factory_error + vehicle_random_error + random_refuel # Add amount of fuel without fraud
-                        refuel_fraud = vehicle_factory_error + vehicle_random_error + random_refuel - fraud # Add amount of fuel with fraud
-                        combus_percentage += (refuel_fraud/tanque)*100 # Get a real percentage of fuel tank
-                        expected_percentage += (refuel_no_fraud/tanque)*100 # Get a expected percentage of fuel tank
-                        vehicle_info[vehicle_id]["fuel_remaining_no_fraud"] += refuel_no_fraud
-                        vehicle_info[vehicle_id]["fuel_remaining_fraud"] += refuel_fraud
+                        random_refuel = random.randint(5,15) # Get a random refuel amount
+                        fraud_percentage = random.randint(5,15)# Get a random percentage fraud
+                        fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
+                        expected_refuel = vehicle_factory_error + vehicle_random_error + random_refuel # Add amount of fuel without fraud
+                        real_refuel = vehicle_factory_error + vehicle_random_error + random_refuel - fraud # Add amount of fuel with fraud
+                        expected_percentage += (expected_refuel/tanque)*100 # Get a expected percentage of fuel tank
+                        combus_percentage += (real_refuel/tanque)*100 # Get a real percentage of fuel tank
+                        vehicle_info[vehicle_id]["expected_fuel_remaining"] += expected_refuel
+                        vehicle_info[vehicle_id]["real_fuel_remaining"] += real_refuel
                         vehicle_info[vehicle_id]["fuel_percentage"] = combus_percentage
                         vehicle_info[vehicle_id]["expected_fuel_percentage"] = expected_percentage
-                        #combus_liters_no_fraud = vehicle_info[vehicle_id]["fuel_remaining_no_fraud"]
-                        #combus_liters_fraud = vehicle_info[vehicle_id]["fuel_remaining_fraud"]
-                        vehicle_info[vehicle_id]["refuel_count"] += 1
                         # Vehicle refuel information tuple
                         refuel_info = {
                             "vehicle_id": int(vehicle_id),
                             "station_id": vehicle_info[vehicle_id]["fuel_station"],
-                            "fraud": fraud,
-                            "vehicle_factory_error": vehicle_factory_error,
-                            "vehicle_random_error": vehicle_random_error,
-                            "refuel_amount": random_refuel,
-                            "refuel_without_fraud": refuel_no_fraud,
-                            "refuel_with_fraud": refuel_fraud,
-                            "expected_fuel_percentage": expected_percentage,
-                            "measured_fuel_percentage": combus_percentage
+                            "vehicle_factory_error": round(vehicle_factory_error,2),
+                            "vehicle_random_error": round(vehicle_random_error,2),
+                            "fraud_percentage": "{:.2f}%".format(fraud_percentage),
+                            "fraud_liters": round(fraud,2),
+                            "refuel_amount_liters": random_refuel,
+                            "expected_refuel_liters": round(expected_refuel,2),
+                            "real_refuel_liters": round(real_refuel,2),
+                            "expected_fuel_percentage": "{:.2f}%".format(expected_percentage),
+                            "real_fuel_percentage": "{:.2f}%".format(combus_percentage)
                         }
                         vehicle_info[vehicle_id]["refuel_info"].append(refuel_info)
 
@@ -284,15 +279,12 @@ def run():
             step += 1
 
             # Condition to stop the simulation loop
-            if step > 35000:
+            if step > 50000:
                 break
     
         for vehicle_id, info in vehicle_info.items():
             fuel_data_list.extend(info["refuel_info"])
-            
-        for vehicle_id, info in vehicle_info.items():
-            print(f"Vehicle {vehicle_id} refueled {info['refuel_count']} times.")
-            
+
         sorted_fuel_data = sorted(fuel_data_list, key=lambda x: (x["vehicle_id"]))
         
         # Function that writes a json file containing the data from all the vehicle
