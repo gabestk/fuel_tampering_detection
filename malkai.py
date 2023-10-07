@@ -71,7 +71,7 @@ def checkStation(id, combustivel):
     Returns:
         boolean: Fueling status of the vehicle
     """
-    if traci.vehicle.getRoadID(id) in stations and combustivel < 60:
+    if traci.vehicle.getRoadID(id) in stations and combustivel < 80:
         return True
 
 
@@ -106,6 +106,8 @@ def run():
         # Vehicles data list
         # vehicle_data_list = []
         # Fuel data list
+        fraud_percentage = 0
+        fraud = 0        
         fuel_data_list = []
         # Fuel density for consumption calculation in liters
         fuel_density_mg_l = 740000
@@ -193,9 +195,8 @@ def run():
                 expected_percentage = vehicle_info[vehicle_id]["expected_fuel_percentage"]
                 
                 goingToFueling = vehicle_info[vehicle_id]["isGoingToRefuel"]
-                
                 # If the vehicle needs to refuel, sent to a fuel station
-                if combus_percentage < 60 and goingToFueling is False:
+                if combus_percentage < 80 and goingToFueling is False:
                     vehicle_info[vehicle_id]["isGoingToRefuel"] = True
                     fuelStation = sendFuel(vehicle_id, None)
                     vehicle_info[vehicle_id]["fuel_station"] = fuelStation
@@ -212,14 +213,30 @@ def run():
                     vehicle_info[vehicle_id]["route_num"] += 1
                     # Refuel a vehicle
                     if vehicle_info[vehicle_id]["fueling"] == True:
+                        fraud_percentage = 0
+                        fraud = 0
                         vehicle_info[vehicle_id]["fueling"] = False
                         vehicle_factory_error = vehicle_info[vehicle_id]["vehicle_factory_error"] # Get the factory error from vehicle's fuel tank
-                        vehicle_random_error = random.uniform(-3,3) # Get a random error to simulate the moment of fueling, such as expansion, fuel moving, etc.
-                        random_refuel = random.randint(5,15) # Get a random refuel amount
-                        fraud_percentage = random.randint(5,15)# Get a random percentage fraud
-                        fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
-                        expected_refuel = vehicle_factory_error + vehicle_random_error + random_refuel # Add amount of fuel without fraud
-                        real_refuel = vehicle_factory_error + vehicle_random_error + random_refuel - fraud # Add amount of fuel with fraud
+                        vehicle_random_error = random.uniform(-3,3) # Get a random error to simulate the moment of fueling, such as expansion, fuel moving, etc
+                        random_refuel = random.randint(5,10) # Get a random refuel amount
+                        match vehicle_info[vehicle_id]["fuel_station"]:
+                            case '-1049729600':
+                                fraud_percentage = random.randint(5,15) # Get a random percentage fraud
+                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
+                            case '-183715364#2':
+                                fraud_percentage = random.randint(5,15) # Get a random percentage fraud
+                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage                       
+                            case '-183715380#2':
+                                fraud_percentage = random.randint(5,15) # Get a random percentage fraud
+                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage                               
+                            case '-125947335#0':
+                                fraud_percentage = random.randint(5,15) # Get a random percentage fraud
+                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage                                
+                            case '-125947335#1':
+                                fraud_percentage = random.randint(5,15) # Get a random percentage fraud
+                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage                                                          
+                        real_refuel = vehicle_factory_error + vehicle_random_error + random_refuel - fraud # Add amount of real fuel
+                        expected_refuel = vehicle_factory_error + vehicle_random_error + random_refuel # Add amount of expected refuel
                         expected_percentage += (expected_refuel/tanque)*100 # Get a expected percentage of fuel tank
                         combus_percentage += (real_refuel/tanque)*100 # Get a real percentage of fuel tank
                         vehicle_info[vehicle_id]["expected_fuel_remaining"] += expected_refuel
@@ -279,7 +296,7 @@ def run():
             step += 1
 
             # Condition to stop the simulation loop
-            if step > 50000:
+            if step > 150000:
                 break
     
         for vehicle_id, info in vehicle_info.items():
@@ -312,7 +329,7 @@ if __name__ == "__main__":
 
     # Start traci connection and set the parameters
     traci.start([sumoBinary, "-c", "osm.sumocfg", "--tripinfo-output",
-                "tripinfo.xml", "--max-num-vehicles", "100"])
+                "tripinfo.xml", "--max-num-vehicles", "1"])
 
     # Start the simulation loop
     run()
