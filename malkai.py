@@ -2,6 +2,16 @@ import traci
 import random
 import json
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+import pandas as pd
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import classification_report
 
 # Sumo configuration imports
 import os
@@ -95,11 +105,9 @@ def rerouting(id):
         print(edge, houses[rand_route])
 
     traci.vehicle.setRoute(id, list(route))
-
-
+    
 def run():
-    """TraCI control loop
-    """
+    """TraCI control loop"""
     try:
         # Definition of some useful variables
 
@@ -118,8 +126,6 @@ def run():
         vehicle_info = {}
         # Fuel tank capacity
         tanque = 50
-        refuel_fraud = 0
-        refuel_no_fraud = 0
 
         # Simulation Loop
         step = 0
@@ -213,6 +219,7 @@ def run():
                     vehicle_info[vehicle_id]["route_num"] += 1
                     # Refuel a vehicle
                     if vehicle_info[vehicle_id]["fueling"] == True:
+                        fraud_bool = False
                         fraud_percentage = 0
                         fraud = 0
                         vehicle_info[vehicle_id]["fueling"] = False
@@ -223,18 +230,23 @@ def run():
                             case '-1049729600':
                                 fraud_percentage = random.randint(5,15) # Get a random percentage fraud
                                 fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
+                                fraud_bool = True
                             case '-183715364#2':
                                 fraud_percentage = random.randint(5,15) # Get a random percentage fraud
-                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage                       
+                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage   
+                                fraud_bool = True                
                             case '-183715380#2':
                                 fraud_percentage = random.randint(5,15) # Get a random percentage fraud
-                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage                               
+                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage  
+                                fraud_bool = True                        
                             case '-125947335#0':
                                 fraud_percentage = random.randint(5,15) # Get a random percentage fraud
-                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage                                
+                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage  
+                                fraud_bool = True                         
                             case '-125947335#1':
                                 fraud_percentage = random.randint(5,15) # Get a random percentage fraud
-                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage                                                          
+                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage   
+                                fraud_bool = True                                                       
                         real_refuel = vehicle_factory_error + vehicle_random_error + random_refuel - fraud # Add amount of real fuel
                         expected_refuel = vehicle_factory_error + vehicle_random_error + random_refuel # Add amount of expected refuel
                         expected_percentage += (expected_refuel/tanque)*100 # Get a expected percentage of fuel tank
@@ -249,13 +261,14 @@ def run():
                             "station_id": vehicle_info[vehicle_id]["fuel_station"],
                             "vehicle_factory_error": round(vehicle_factory_error,2),
                             "vehicle_random_error": round(vehicle_random_error,2),
-                            "fraud_percentage": "{:.2f}%".format(fraud_percentage),
+                            "fraud_percentage": round(fraud_percentage,2),
                             "fraud_liters": round(fraud,2),
                             "refuel_amount_liters": random_refuel,
                             "expected_refuel_liters": round(expected_refuel,2),
                             "real_refuel_liters": round(real_refuel,2),
-                            "expected_fuel_percentage": "{:.2f}%".format(expected_percentage),
-                            "real_fuel_percentage": "{:.2f}%".format(combus_percentage)
+                            "expected_fuel_percentage": round(expected_percentage,2),
+                            "real_fuel_percentage":round(combus_percentage,2),
+                            "fraud": fraud_bool
                         }
                         vehicle_info[vehicle_id]["refuel_info"].append(refuel_info)
 
@@ -296,7 +309,7 @@ def run():
             step += 1
 
             # Condition to stop the simulation loop
-            if step > 150000:
+            if step > 100000:
                 break
     
         for vehicle_id, info in vehicle_info.items():
@@ -307,6 +320,56 @@ def run():
         # Function that writes a json file containing the data from all the vehicle
         #malkai(sorted_data)
         gabriel(sorted_fuel_data)
+
+        # Suponha que 'data' é um DataFrame do pandas contendo seus dados
+        data = pd.read_json('vehicle_fueling_file.json')
+
+        # Seleciona os recursos que serão usados para a previsão
+        features = ['vehicle_factory_error', 'vehicle_random_error', 'real_refuel_liters', 'real_fuel_percentage']
+
+        # Suponha que 'is_fraud' é a coluna que indica se houve fraude ou não
+        target = 'fraud'
+
+        # Divide os dados em conjuntos de treinamento e teste
+        X_train, X_test, y_train, y_test = train_test_split(data[features], data[target], test_size=0.2)
+
+        # Adiciona ruído aos dados de treinamento e teste
+        X_train_noisy = X_train.copy()
+        X_train_noisy['vehicle_factory_error'] += np.random.normal(0, 0.1, X_train['vehicle_factory_error'].shape)
+        X_train_noisy['vehicle_random_error'] += np.random.normal(0, 0.1, X_train['vehicle_random_error'].shape)
+
+        X_test_noisy = X_test.copy()
+        X_test_noisy['vehicle_factory_error'] += np.random.normal(0, 0.1, X_test['vehicle_factory_error'].shape)
+        X_test_noisy['vehicle_random_error'] += np.random.normal(0, 0.1, X_test['vehicle_random_error'].shape)
+        
+        # Normaliza os dados
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train_noisy)
+        X_test_scaled = scaler.transform(X_test_noisy)
+
+        # Cria e treina o modelo com validação cruzada e ajuste de hiperparâmetros
+        model = LogisticRegression()
+        param_grid = {'C': [0.001, 0.01, 0.1, 1, 10, 100]}
+        grid_search = GridSearchCV(model, param_grid, cv=5)
+        grid_search.fit(X_train_scaled, y_train)
+
+        # Faz previsões no conjunto de teste
+        y_pred = grid_search.predict(X_test_scaled)
+        
+        report = classification_report(y_test, y_pred, output_dict=True)
+        df_report = pd.DataFrame(report).transpose()
+
+        # Cria a matriz de confusão
+        cm = confusion_matrix(y_test, y_pred)
+
+        # Exibe a matriz de confusão
+        np.set_printoptions(suppress=True)
+        sns.heatmap(cm, annot=True, fmt='d')
+        plt.savefig('confusion_matrix.png')
+        plt.show()
+        sns.heatmap(df_report.iloc[:-1, :-1], annot=True)
+        plt.savefig('classification_report.png')
+        plt.show()
         
 
     finally:
@@ -329,7 +392,7 @@ if __name__ == "__main__":
 
     # Start traci connection and set the parameters
     traci.start([sumoBinary, "-c", "osm.sumocfg", "--tripinfo-output",
-                "tripinfo.xml", "--max-num-vehicles", "1"])
+                "tripinfo.xml", "--max-num-vehicles", "100"])
 
     # Start the simulation loop
     run()
