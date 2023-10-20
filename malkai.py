@@ -12,6 +12,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report
+from sklearn.ensemble import RandomForestClassifier
 
 # Sumo configuration imports
 import os
@@ -309,7 +310,7 @@ def run():
             step += 1
 
             # Condition to stop the simulation loop
-            if step > 100000:
+            if step > 50000:
                 break
     
         for vehicle_id, info in vehicle_info.items():
@@ -321,56 +322,82 @@ def run():
         #malkai(sorted_data)
         gabriel(sorted_fuel_data)
 
-        # Suponha que 'data' é um DataFrame do pandas contendo seus dados
+        # Carrega os dados
         data = pd.read_json('vehicle_fueling_file.json')
-
+        #data['diff_refuel_liters'] = data['expected_refuel_liters'] - data['real_refuel_liters']
+        #data['diff_fuel_percentage'] = data['expected_fuel_percentage'] - data['real_fuel_percentage']
+        
         # Seleciona os recursos que serão usados para a previsão
         features = ['vehicle_factory_error', 'vehicle_random_error', 'real_refuel_liters', 'real_fuel_percentage']
-
-        # Suponha que 'is_fraud' é a coluna que indica se houve fraude ou não
         target = 'fraud'
 
         # Divide os dados em conjuntos de treinamento e teste
         X_train, X_test, y_train, y_test = train_test_split(data[features], data[target], test_size=0.2)
 
-        # Adiciona ruído aos dados de treinamento e teste
-        X_train_noisy = X_train.copy()
-        X_train_noisy['vehicle_factory_error'] += np.random.normal(0, 0.1, X_train['vehicle_factory_error'].shape)
-        X_train_noisy['vehicle_random_error'] += np.random.normal(0, 0.1, X_train['vehicle_random_error'].shape)
+        # Variante com a fraude fixa em 8% e os erros aleatórios
+        X_train_noisy_fraud_fixed = X_train.copy()
+        X_train_noisy_fraud_fixed['fraud'] = 0.08
+        X_train_noisy_fraud_fixed['vehicle_factory_error'] += np.random.normal(0, 0.1, X_train['vehicle_factory_error'].shape)
+        X_train_noisy_fraud_fixed['vehicle_random_error'] += np.random.normal(0, 0.1, X_train['vehicle_random_error'].shape)
 
-        X_test_noisy = X_test.copy()
-        X_test_noisy['vehicle_factory_error'] += np.random.normal(0, 0.1, X_test['vehicle_factory_error'].shape)
-        X_test_noisy['vehicle_random_error'] += np.random.normal(0, 0.1, X_test['vehicle_random_error'].shape)
-        
+        X_test_noisy_fraud_fixed = X_test.copy()
+        X_test_noisy_fraud_fixed['fraud'] = 0.08
+        X_test_noisy_fraud_fixed['vehicle_factory_error'] += np.random.normal(0, 0.1, X_test['vehicle_factory_error'].shape)
+        X_test_noisy_fraud_fixed['vehicle_random_error'] += np.random.normal(0, 0.1, X_test['vehicle_random_error'].shape)
+
+        # Variante com o erro fixo em 8% e a fraude aleatória
+        X_train_noisy_error_fixed = X_train.copy()
+        X_train_noisy_error_fixed['vehicle_factory_error'] = 0.08
+        X_train_noisy_error_fixed['vehicle_random_error'] = 0.08
+
+        X_test_noisy_error_fixed = X_test.copy()
+        X_test_noisy_error_fixed['vehicle_factory_error'] = 0.08
+        X_test_noisy_error_fixed['vehicle_random_error'] = 0.08
+
         # Normaliza os dados
         scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train_noisy)
-        X_test_scaled = scaler.transform(X_test_noisy)
 
-        # Cria e treina o modelo com validação cruzada e ajuste de hiperparâmetros
-        model = LogisticRegression()
-        param_grid = {'C': [0.001, 0.01, 0.1, 1, 10, 100]}
-        grid_search = GridSearchCV(model, param_grid, cv=5)
-        grid_search.fit(X_train_scaled, y_train)
+        variants = ['original', 'fraud_fixed', 'error_fixed']
+        variant_data = {
+            'original': (X_train, X_test),
+            'fraud_fixed': (X_train_noisy_fraud_fixed, X_test_noisy_fraud_fixed),
+            'error_fixed': (X_train_noisy_error_fixed, X_test_noisy_error_fixed)
+        }
 
-        # Faz previsões no conjunto de teste
-        y_pred = grid_search.predict(X_test_scaled)
-        
-        report = classification_report(y_test, y_pred, output_dict=True)
-        df_report = pd.DataFrame(report).transpose()
+        for variant in variants:
+            X_train_variant, X_test_variant = variant_data[variant]
+            
+            X_train_scaled = scaler.fit_transform(X_train_variant)
+            X_test_scaled = scaler.transform(X_test_variant)
 
-        # Cria a matriz de confusão
-        cm = confusion_matrix(y_test, y_pred)
+            # Crie e treine o modelo com validação cruzada e ajuste de hiperparâmetros
+            model = RandomForestClassifier()
+            param_grid = {'n_estimators': [100, 200, 300], 'max_depth': [None, 5, 10], 'min_samples_split': [2, 5]}
+            grid_search = GridSearchCV(model, param_grid, cv=5)
+            grid_search.fit(X_train_scaled, y_train)
 
-        # Exibe a matriz de confusão
-        np.set_printoptions(suppress=True)
-        sns.heatmap(cm, annot=True, fmt='d')
-        plt.savefig('confusion_matrix.png')
-        plt.show()
-        sns.heatmap(df_report.iloc[:-1, :-1], annot=True)
-        plt.savefig('classification_report.png')
-        plt.show()
-        
+            # Faça previsões no conjunto de teste
+            y_pred = grid_search.predict(X_test_scaled)
+
+            # Crie a matriz de confusão
+            cm = confusion_matrix(y_test, y_pred)
+
+            # Exiba a matriz de confusão
+            plt.figure(figsize=(10, 7))
+            sns.heatmap(cm, annot=True, fmt='d')
+            plt.title('Confusion Matrix for ' + variant)
+            plt.savefig('confusion_matrix_' + variant + '.png')
+            plt.show()
+
+            # Gere e exiba o relatório de classificação
+            report = classification_report(y_test, y_pred, output_dict=True)
+            df_report = pd.DataFrame(report).transpose()
+
+            plt.figure(figsize=(10, 7))
+            sns.heatmap(df_report.iloc[:-1, :-1], annot=True)
+            plt.title('Classification Report for ' + variant)
+            plt.savefig('classification_report_' + variant + '.png')
+            plt.show()
 
     finally:
 
