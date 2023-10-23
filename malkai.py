@@ -160,7 +160,7 @@ def run():
                         "isGoingToRefuel": False,
                         "fueling": False,
                         "fuel_station": "",
-                        "vehicle_factory_error": random.uniform(-2,2)
+                        "vehicle_factory_error": random.uniform(-1,1)
                     }
                 
                 """
@@ -225,7 +225,7 @@ def run():
                         fraud = 0
                         vehicle_info[vehicle_id]["fueling"] = False
                         vehicle_factory_error = vehicle_info[vehicle_id]["vehicle_factory_error"] # Get the factory error from vehicle's fuel tank
-                        vehicle_random_error = random.uniform(-3,3) # Get a random error to simulate the moment of fueling, such as expansion, fuel moving, etc
+                        vehicle_random_error = random.uniform(-1.5,1.5) # Get a random error to simulate the moment of fueling, such as expansion, fuel moving, etc
                         random_refuel = random.randint(5,10) # Get a random refuel amount
                         match vehicle_info[vehicle_id]["fuel_station"]:
                             case '-1049729600':
@@ -328,7 +328,7 @@ def run():
         #data['diff_fuel_percentage'] = data['expected_fuel_percentage'] - data['real_fuel_percentage']
         
         # Seleciona os recursos que serão usados para a previsão
-        features = ['vehicle_factory_error', 'vehicle_random_error', 'real_refuel_liters', 'real_fuel_percentage']
+        features = ['vehicle_factory_error', 'vehicle_random_error', 'real_refuel_liters', 'real_fuel_percentage', 'expected_fuel_percentage', 'expected_refuel_liters', 'refuel_amount_liters']
         target = 'fraud'
 
         # Divide os dados em conjuntos de treinamento e teste
@@ -336,23 +336,19 @@ def run():
 
         # Variante com a fraude fixa em 8% e os erros aleatórios
         X_train_noisy_fraud_fixed = X_train.copy()
-        X_train_noisy_fraud_fixed['fraud'] = 0.08
-        X_train_noisy_fraud_fixed['vehicle_factory_error'] += np.random.normal(0, 0.1, X_train['vehicle_factory_error'].shape)
-        X_train_noisy_fraud_fixed['vehicle_random_error'] += np.random.normal(0, 0.1, X_train['vehicle_random_error'].shape)
+        X_train_noisy_fraud_fixed['fraud_liters'] = 4
 
         X_test_noisy_fraud_fixed = X_test.copy()
-        X_test_noisy_fraud_fixed['fraud'] = 0.08
-        X_test_noisy_fraud_fixed['vehicle_factory_error'] += np.random.normal(0, 0.1, X_test['vehicle_factory_error'].shape)
-        X_test_noisy_fraud_fixed['vehicle_random_error'] += np.random.normal(0, 0.1, X_test['vehicle_random_error'].shape)
+        X_test_noisy_fraud_fixed['fraud_liters'] = 4
 
         # Variante com o erro fixo em 8% e a fraude aleatória
         X_train_noisy_error_fixed = X_train.copy()
-        X_train_noisy_error_fixed['vehicle_factory_error'] = 0.08
-        X_train_noisy_error_fixed['vehicle_random_error'] = 0.08
+        X_train_noisy_error_fixed['vehicle_factory_error'] = 2
+        X_train_noisy_error_fixed['vehicle_random_error'] = 2
 
         X_test_noisy_error_fixed = X_test.copy()
-        X_test_noisy_error_fixed['vehicle_factory_error'] = 0.08
-        X_test_noisy_error_fixed['vehicle_random_error'] = 0.08
+        X_test_noisy_error_fixed['vehicle_factory_error'] = 2
+        X_test_noisy_error_fixed['vehicle_random_error'] = 2
 
         # Normaliza os dados
         scaler = StandardScaler()
