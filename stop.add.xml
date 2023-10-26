@@ -15,9 +15,9 @@
     <parkingArea id="pa-125947335#1" lane="-125947335#1_0" roadsideCapacity="3" length="5.00"/>
     <parkingArea id="pa-125948399" lane="-125948399_0" roadsideCapacity="3" length="5.00"/>
     <parkingArea id="pa-125948402" lane="-125948402_0" roadsideCapacity="46" length="5.00"/>
-    <parkingArea id="pa-162154275#0" lane="-162154275#0_0" roadsideCapacity="1" length="5.00"/>
+<!--<parkingArea id="pa-162154275#0" lane="-162154275#0_0" roadsideCapacity="1" length="5.00"/>
     <parkingArea id="pa-183715364#2" lane="-183715364#2_0" roadsideCapacity="6" length="5.00"/>
     <parkingArea id="pa-183715367" lane="-183715367_0" roadsideCapacity="4" length="5.00"/>
     <parkingArea id="pa-183715380#2" lane="-183715380#2_0" roadsideCapacity="4" length="5.00"/>
-    <parkingArea id="pa-183715382" lane="-183715382_0" roadsideCapacity="27" length="5.00"/>
+    <parkingArea id="pa-183715382" lane="-183715382_0" roadsideCapacity="27" length="5.00"/>-->
 </additional>
