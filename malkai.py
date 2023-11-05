@@ -217,10 +217,6 @@ def run():
                         vehicle_random_error = random.uniform(1.5,1.5) # Get a random error to simulate the moment of fueling, such as expansion, fuel moving, etc
                         random_refuel = random.randint(5,10) # Get a random refuel amount
                         match vehicle_info[vehicle_id]["fuel_station"]: 
-                            case '-125948399':
-                                fraud_percentage = 8 # Get a random percentage fraud
-                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
-                                fraud_bool = True
                             case '-101103849':
                                 fraud_percentage = 8 # Get a random percentage fraud
                                 fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
@@ -232,7 +228,11 @@ def run():
                             case '-125947335#1':
                                 fraud_percentage = 8 # Get a random percentage fraud
                                 fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
-                                fraud_bool = True                                                    
+                                fraud_bool = True
+                            case '-125947334#2':     
+                                fraud_percentage = 8 # Get a random percentage fraud
+                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
+                                fraud_bool = True                                             
                         real_refuel = vehicle_factory_error + vehicle_random_error + random_refuel - fraud # Add amount of real fuel
                         expected_refuel = vehicle_factory_error + vehicle_random_error + random_refuel # Add amount of expected refuel
                         expected_percentage += (expected_refuel/tanque)*100 # Get a expected percentage of fuel tank
