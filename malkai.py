@@ -3,6 +3,7 @@ import random
 import json
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Sumo configuration imports
 import os
@@ -96,6 +97,11 @@ def rerouting(id):
 
     traci.vehicle.setRoute(id, list(route))
     
+def generate_random_error():
+    mu = 1.0  # Média
+    sigma = 0.1  # Desvio padrão
+    return np.random.normal(mu, sigma)
+
 def run():
     """TraCI control loop"""
     try:
@@ -149,12 +155,12 @@ def run():
                         "isGoingToRefuel": False,
                         "fueling": False,
                         "fuel_station": "",
-                        "vehicle_factory_error": random.uniform(1,1)
+                        "vehicle_factory_error": generate_random_error()
                     }
                 
                 """
                 # Add a delta time step to the inicial data
-                data_incrementada = data_atual + \
+                data_incrementada = data_atual + 
                     timedelta(seconds=step*delta_t)
 
                 # Format the data (2023-07-21 14:39:05.278504)
@@ -214,25 +220,13 @@ def run():
                         fraud = 0
                         vehicle_info[vehicle_id]["fueling"] = False
                         vehicle_factory_error = vehicle_info[vehicle_id]["vehicle_factory_error"] # Get the factory error from vehicle's fuel tank
-                        vehicle_random_error = random.uniform(1.5,1.5) # Get a random error to simulate the moment of fueling, such as expansion, fuel moving, etc
+                        vehicle_random_error = generate_random_error() # Get a random error to simulate the moment of fueling, such as expansion, fuel moving, etc
                         random_refuel = random.randint(5,10) # Get a random refuel amount
                         match vehicle_info[vehicle_id]["fuel_station"]: 
                             case '-101103849':
                                 fraud_percentage = 8 # Get a random percentage fraud
                                 fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
-                                fraud_bool = True
-                            case '-1049729600':
-                                fraud_percentage = 8 # Get a random percentage fraud
-                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
-                                fraud_bool = True    
-                            case '-125947335#1':
-                                fraud_percentage = 8 # Get a random percentage fraud
-                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
-                                fraud_bool = True
-                            case '-125947334#2':     
-                                fraud_percentage = 8 # Get a random percentage fraud
-                                fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
-                                fraud_bool = True                                             
+                                fraud_bool = True                                           
                         real_refuel = vehicle_factory_error + vehicle_random_error + random_refuel - fraud # Add amount of real fuel
                         expected_refuel = vehicle_factory_error + vehicle_random_error + random_refuel # Add amount of expected refuel
                         expected_percentage += (expected_refuel/tanque)*100 # Get a expected percentage of fuel tank

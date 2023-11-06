@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-data = pd.read_json('vehicle_fueling_file_RandError_FrauFix8%.json')
+data = pd.read_json('vehicle_fueling_file.json')
 
 features = ['vehicle_random_error','vehicle_factory_error','real_refuel_liters', 'refuel_amount_liters',]
 target = 'fraud'
@@ -22,8 +22,8 @@ noise_test = np.random.normal(0,1,X_test.shape)
 X_test_noise = X_test + noise_test
 
 scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train_noise)
-X_test_scaled = scaler.transform(X_test_noise)
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
 model = LogisticRegression()
 model.fit(X_train_scaled, y_train)
@@ -34,13 +34,13 @@ cm = confusion_matrix(y_test, y_pred)
 
 plt.figure(figsize=(10, 7))
 sns.heatmap(cm, annot=True, fmt='d')
-plt.title(f'Confusion matrix fixed error 5% fixed fraud 8% stations 50%')
-plt.savefig('Confusion_matrix_fixed_error5%_fraud8%_stations50%.png')
+plt.title(f'Confusion matrix gauss error fixed fraud 8% ')
+plt.savefig('Confusion_matrix_gauss_error_fraud8%.png')
 
 report = classification_report(y_test, y_pred, output_dict=True, zero_division=1)
 df_report = pd.DataFrame(report).transpose()
 
 plt.figure(figsize=(10, 7))
 sns.heatmap(df_report.iloc[:-1, :-1], annot=True)
-plt.title(f'Classification Report fixed error 5% fraud at 8% stations 50%')
-plt.savefig('classification_report_fixed_error5%_fraud8%_stations50%.png')
+plt.title(f'Classification Report gauss error fraud at 8% ')
+plt.savefig('classification_report_gauss_error_fraud8%.png')
