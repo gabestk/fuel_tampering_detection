@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-data = pd.read_json('vehicle_fueling_file.json')
+data = pd.read_json('vehicle_fueling_file_1.5%.json')
 
 features = ['vehicle_random_error','vehicle_factory_error','real_refuel_liters', 'refuel_amount_liters',]
 target = 'fraud'
@@ -34,13 +34,13 @@ cm = confusion_matrix(y_test, y_pred)
 
 plt.figure(figsize=(10, 7))
 sns.heatmap(cm, annot=True, fmt='d')
-plt.title(f'Confusion matrix gauss error fixed fraud 8% ')
-plt.savefig('Confusion_matrix_gauss_error_fraud8%.png')
+plt.title(f'Confusion matrix error 1.5% ')
+plt.savefig('Confusion_matrix_error 1.5%.png')
 
 report = classification_report(y_test, y_pred, output_dict=True, zero_division=1)
 df_report = pd.DataFrame(report).transpose()
 
 plt.figure(figsize=(10, 7))
 sns.heatmap(df_report.iloc[:-1, :-1], annot=True)
-plt.title(f'Classification Report gauss error fraud at 8% ')
-plt.savefig('classification_report_gauss_error_fraud8%.png')
+plt.title(f'Classification Report error 1.5% ')
+plt.savefig('classification_report_error 1.5%.png')
