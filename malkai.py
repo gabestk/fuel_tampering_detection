@@ -23,9 +23,9 @@ def malkai(sorted_data):
     with open("vehicles_data2.json", "w") as json_file:
         json.dump(sorted_data, json_file, indent=4)
 
-def gabriel(sorted_fuel_data):
+def gabriel(sorted_fuel_data, filename):
     # Write a json file contining the fueling data related from all vehicles
-    with open("vehicle_fueling_file.json", "w") as json_file:
+    with open(filename, "w") as json_file:
         json.dump(sorted_fuel_data, json_file, indent=4, allow_nan=False)
 
 
@@ -34,7 +34,7 @@ def get_options():
 
     """
     opt_parser = optparse.OptionParser()
-    opt_parser.add_option("--nogui", action="store_true", default=False, help="run the commandline version of sumo")
+    opt_parser.add_option("--nogui", action="store_true", default=True, help="run the commandline version of sumo")
     options, args = opt_parser.parse_args()
     print(type(options))
     return options
@@ -102,7 +102,7 @@ def generate_random_error():
     sigma = 0.1  # Desvio padrão
     return np.random.normal(mu, sigma)
 
-def run():
+def run(sim_n):
     """TraCI control loop"""
     try:
         # Definition of some useful variables
@@ -299,7 +299,8 @@ def run():
         
         # Function that writes a json file containing the data from all the vehicle
         #malkai(sorted_data)
-        gabriel(sorted_fuel_data)
+        fuel_data_filename = f"vehicle_fueling_file_fraud_5_{sim_n}.json"
+        gabriel(sorted_fuel_data, fuel_data_filename)
         
                 
     finally:
@@ -308,21 +309,21 @@ def run():
         traci.close()
         sys.stdout.flush()
 
+for i in range(1, 31):
+    if __name__ == "__main__":
+        """Main entry point
+        """
+        options = get_options()
 
-if __name__ == "__main__":
-    """Main entry point
-    """
-    options = get_options()
+        # check binary
+        if options.nogui:
+            sumoBinary = checkBinary('sumo')
+        else:
+            sumoBinary = checkBinary('sumo-gui')
 
-    # check binary
-    if options.nogui:
-        sumoBinary = checkBinary('sumo')
-    else:
-        sumoBinary = checkBinary('sumo-gui')
+        # Start traci connection and set the parameters
+        traci.start([sumoBinary, "-c", "osm.sumocfg", "--tripinfo-output",
+                    "tripinfo.xml", "--max-num-vehicles", "100", "--quit-on-end", "--start"])
 
-    # Start traci connection and set the parameters
-    traci.start([sumoBinary, "-c", "osm.sumocfg", "--tripinfo-output",
-                "tripinfo.xml", "--max-num-vehicles", "100"])
-
-    # Start the simulation loop
-    run()
+        # Start the simulation loop
+        run(i)
