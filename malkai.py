@@ -98,7 +98,7 @@ def rerouting(id):
     traci.vehicle.setRoute(id, list(route))
     
 def generate_random_error():
-    mu = 1.0  # Média
+    mu = 1.0  # Média0
     sigma = 0.1  # Desvio padrão
     return np.random.normal(mu, sigma)
 
@@ -155,7 +155,7 @@ def run():
                         "isGoingToRefuel": False,
                         "fueling": False,
                         "fuel_station": "",
-                        "vehicle_factory_error": 1
+                        "vehicle_factory_error": 2.5
                     }
                 
                 """
@@ -220,11 +220,11 @@ def run():
                         fraud = 0
                         vehicle_info[vehicle_id]["fueling"] = False
                         vehicle_factory_error = vehicle_info[vehicle_id]["vehicle_factory_error"] # Get the factory error from vehicle's fuel tank
-                        vehicle_random_error = 1.5 # Get a random error to simulate the moment of fueling, such as expansion, fuel moving, etc
+                        vehicle_random_error = 2.5 # Get a random error to simulate the moment of fueling, such as expansion, fuel moving, etc
                         random_refuel = random.randint(5,10) # Get a random refuel amount
                         match vehicle_info[vehicle_id]["fuel_station"]: 
                             case '-101103849':
-                                fraud_percentage = 8 # Get a random percentage fraud
+                                fraud_percentage = 5 # Get a random percentage fraud
                                 fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
                                 fraud_bool = True                                           
                         real_refuel = vehicle_factory_error + vehicle_random_error + random_refuel - fraud # Add amount of real fuel
@@ -289,7 +289,7 @@ def run():
             step += 1
 
             # Condition to stop the simulation loop
-            if step > 100000:
+            if step > 86400:
                 break
     
         for vehicle_id, info in vehicle_info.items():
