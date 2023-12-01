@@ -8,39 +8,48 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-data = pd.read_json('vehicle_fueling_file_1.5%.json')
-
 features = ['vehicle_random_error','vehicle_factory_error','real_refuel_liters', 'refuel_amount_liters',]
 target = 'fraud'
 
-X_train, X_test, y_train, y_test = train_test_split(data[features], data[target], test_size=0.3)
+cm_avg = np.zeros((2,2))
+report_avg = pd.DataFrame()
 
-noise = np.random.normal(0,1,X_train.shape)
-X_train_noise = X_train + noise
+for i in range(1, 31):
+    data = pd.read_json(f'vehicle_fueling_file_error_8_({i}).json')
 
-noise_test = np.random.normal(0,1,X_test.shape)
-X_test_noise = X_test + noise_test
+    X_train, X_test, y_train, y_test = train_test_split(data[features], data[target], test_size=0.3)
 
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+    noise = np.random.normal(0,1,X_train.shape)
+    X_train_noise = X_train + noise
 
-model = LogisticRegression()
-model.fit(X_train_scaled, y_train)
+    noise_test = np.random.normal(0,1,X_test.shape)
+    X_test_noise = X_test + noise_test
 
-y_pred = model.predict(X_test_scaled)
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
 
-cm = confusion_matrix(y_test, y_pred)
+    model = LogisticRegression()
+    model.fit(X_train_scaled, y_train)
+
+    y_pred = model.predict(X_test_scaled)
+
+    cm = confusion_matrix(y_test, y_pred)
+    cm_avg += cm
+
+    report = classification_report(y_test, y_pred, output_dict=True, zero_division=1)
+    df_report = pd.DataFrame(report).transpose()
+    report_avg = report_avg.add(df_report, fill_value=0)
+
+cm_avg /= 30
+report_avg /= 30
 
 plt.figure(figsize=(10, 7))
-sns.heatmap(cm, annot=True, fmt='d')
-plt.title(f'Confusion matrix error 1.5% ')
-plt.savefig('Confusion_matrix_error 1.5%.png')
-
-report = classification_report(y_test, y_pred, output_dict=True, zero_division=1)
-df_report = pd.DataFrame(report).transpose()
+sns.heatmap(cm_avg, annot=True, fmt='.2f')
+plt.title(f'Confusion matrix avg error 8 ')
+plt.savefig('Confusion_matrix_avg error_8.png')
 
 plt.figure(figsize=(10, 7))
-sns.heatmap(df_report.iloc[:-1, :-1], annot=True)
-plt.title(f'Classification Report error 1.5% ')
-plt.savefig('classification_report_error 1.5%.png')
+sns.heatmap(report_avg.iloc[:-1, :-1], annot=True)
+plt.title(f'Classification Report avg error 8 ')
+plt.savefig('classification_report_avg error_8.png')

@@ -98,8 +98,8 @@ def rerouting(id):
     traci.vehicle.setRoute(id, list(route))
     
 def generate_random_error():
-    mu = 1.0  # Média0
-    sigma = 0.1  # Desvio padrão
+    mu = 0  # Média
+    sigma = 2.6  # Desvio padrão
     return np.random.normal(mu, sigma)
 
 def run(sim_n):
@@ -155,7 +155,7 @@ def run(sim_n):
                         "isGoingToRefuel": False,
                         "fueling": False,
                         "fuel_station": "",
-                        "vehicle_factory_error": 2.5
+                        "vehicle_factory_error": generate_random_error()
                     }
                 
                 """
@@ -220,11 +220,11 @@ def run(sim_n):
                         fraud = 0
                         vehicle_info[vehicle_id]["fueling"] = False
                         vehicle_factory_error = vehicle_info[vehicle_id]["vehicle_factory_error"] # Get the factory error from vehicle's fuel tank
-                        vehicle_random_error = 2.5 # Get a random error to simulate the moment of fueling, such as expansion, fuel moving, etc
+                        vehicle_random_error = generate_random_error() # Get a random error to simulate the moment of fueling, such as expansion, fuel moving, etc
                         random_refuel = random.randint(5,10) # Get a random refuel amount
                         match vehicle_info[vehicle_id]["fuel_station"]: 
                             case '-101103849':
-                                fraud_percentage = 5 # Get a random percentage fraud
+                                fraud_percentage = 8 # Get a random percentage fraud
                                 fraud = (fraud_percentage/100) * random_refuel # Calculate the fraud value based on the percentage
                                 fraud_bool = True                                           
                         real_refuel = vehicle_factory_error + vehicle_random_error + random_refuel - fraud # Add amount of real fuel
@@ -289,7 +289,7 @@ def run(sim_n):
             step += 1
 
             # Condition to stop the simulation loop
-            if step > 86400:
+            if step > 86400:                    
                 break
     
         for vehicle_id, info in vehicle_info.items():
@@ -299,7 +299,7 @@ def run(sim_n):
         
         # Function that writes a json file containing the data from all the vehicle
         #malkai(sorted_data)
-        fuel_data_filename = f"vehicle_fueling_file_fraud_5_{sim_n}.json"
+        fuel_data_filename = f"vehicle_fueling_file_gauss_166_({sim_n}).json"
         gabriel(sorted_fuel_data, fuel_data_filename)
         
                 
