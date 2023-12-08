@@ -44,6 +44,8 @@ This script simulates the vehicle refueling process at gas stations, including t
 ### Requirements:
 - Python 3.x
 - Libraries listed in the scripts (`pip install "libraries used"`)
+  
+### SUMO Installation:
 To install SUMO, follow these steps:
 1. Download SUMO from the official website [here](https://sumo.dlr.de/docs/Downloads.php).
 2. Choose the appropriate version for your operating system and download the installer or binaries.
