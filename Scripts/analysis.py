@@ -16,7 +16,9 @@ target = 'fraud'
 cm_avg = np.zeros((2,2))
 report_avg = pd.DataFrame()
 
+#looping for classification each 30 times json files simulated using sumo
 for i in range(1, 31):
+    #Reading a data file generated from simulation
     data = pd.read_json(f'vehicle_fueling_file_40_station_({i}).json')
 
     X_train, X_test, y_train, y_test = train_test_split(data[features], data[target], test_size=0.3)
