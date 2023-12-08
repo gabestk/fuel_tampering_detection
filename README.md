@@ -53,5 +53,5 @@ To install SUMO, follow these steps:
 
 ### Steps:
 1. Clone this repository.
-2. Run `analysis.py` to perform the analysis on simulation data.
-3. Run `simulation.py` to simulate the refueling process and collect data.
+2. Run `simulation.py` to simulate the refueling process and collect data.
+3. Run `analysis.py` to perform the analysis on simulation data.
