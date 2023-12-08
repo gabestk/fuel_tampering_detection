@@ -1,7 +1,6 @@
 import traci
 import random
 import json
-from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import numpy as np
 
