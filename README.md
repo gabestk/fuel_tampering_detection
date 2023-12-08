@@ -4,7 +4,7 @@ This repository includes scripts developed to simulate the vehicle refueling pro
 
 ## Scripts
 
-### 1. `classification_analysis.py`
+### 1. `analysis.py`
 
 This script performs data analysis on simulated vehicle refueling fraud using classification techniques.
 
@@ -20,9 +20,8 @@ This script performs data analysis on simulated vehicle refueling fraud using cl
 - Collects data from vehicle refueling simulations.
 - Conducts 30 iterations of classification using logistic regression.
 - Generates average confusion matrices and average classification reports.
-- Plots and saves average confusion matrices and classification reports.
 
-### 2. `simulation_fraud.py`
+### 2. `simulation.py`
 
 This script simulates the vehicle refueling process at gas stations, including the introduction of potential fraud into the system.
 
@@ -44,9 +43,9 @@ This script simulates the vehicle refueling process at gas stations, including t
 
 ### Requirements:
 - Python 3.x
-- Libraries listed in the scripts (`pip install -r requirements.txt` can be used)
+- Libraries listed in the scripts (`pip install "libraries used"`)
 
 ### Steps:
 1. Clone this repository.
-2. Run `classification_analysis.py` to perform the analysis on simulation data.
-3. Run `simulation_fraud.py` to simulate the refueling process and collect data.
+2. Run `analysis.py` to perform the analysis on simulation data.
+3. Run `simulation.py` to simulate the refueling process and collect data.
