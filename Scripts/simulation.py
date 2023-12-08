@@ -18,12 +18,7 @@ if 'SUMO_HOME' in os.environ:
 else:
     sys.exit("please declare environment variable 'SUMO_HOME'")
 
-def malkai(sorted_data):
-    # Write a json file containing the data from all the vehicles
-    with open("vehicles_data2.json", "w") as json_file:
-        json.dump(sorted_data, json_file, indent=4)
-
-def gabriel(sorted_fuel_data, filename):
+def fuel_data(sorted_fuel_data, filename):
     # Write a json file contining the fueling data related from all vehicles
     with open(filename, "w") as json_file:
         json.dump(sorted_fuel_data, json_file, indent=4, allow_nan=False)
@@ -98,26 +93,23 @@ def rerouting(id):
     traci.vehicle.setRoute(id, list(route))
     
 def generate_random_error():
-    mu = 0  # Média
-    sigma = 2.6  # Desvio padrão
+    """
+    generate random error in normal distribution
+    """
+    mu = 0 
+    sigma = 2.6 
     return np.random.normal(mu, sigma)
 
 def run(sim_n):
     """TraCI control loop"""
     try:
         # Definition of some useful variables
-
-        # Vehicles data list
-        # vehicle_data_list = []
-        # Fuel data list
         fraud_percentage = 0
-        fraud = 0        
+        fraud = 0  
+        # Fuel data list      
         fuel_data_list = []
         # Fuel density for consumption calculation in liters
         fuel_density_mg_l = 740000
-        # Simulation start date
-        data_atual = datetime.now()
-        data_atual = datetime.now()
         # Vehicle fuel dictionary
         vehicle_info = {}
         # Fuel tank capacity
@@ -135,9 +127,6 @@ def run(sim_n):
 
             # Runs through all running vehicles
             for vehicle_id in traci.vehicle.getIDList():
-                # This is deprecated, but i still mantain just for security.
-                # Assure that only the data from the vehicle firsts 30 vehicles
-                # will be colected.
                 if vehicle_id == 100:
                     break
 
@@ -156,17 +145,7 @@ def run(sim_n):
                         "fueling": False,
                         "fuel_station": "",
                         "vehicle_factory_error": 1.5
-                    }
-                
-                """
-                # Add a delta time step to the inicial data
-                data_incrementada = data_atual + 
-                    timedelta(seconds=step*delta_t)
-
-                # Format the data (2023-07-21 14:39:05.278504)
-                data_incrementada_formatada = data_incrementada.strftime("%Y-%m-%d %H:%M:%S.%f")
-                """
-                
+                    }               
                 # Get the consumption step
                 fuel_consumption_mg_s = traci.vehicle.getFuelConsumption(vehicle_id)
 
@@ -183,15 +162,7 @@ def run(sim_n):
                 vehicle_info[vehicle_id]["expected_fuel_remaining"] -= fuel_consumption_liters
                 vehicle_info[vehicle_id]["real_fuel_remaining"] -= fuel_consumption_liters
                 vehicle_info[vehicle_id]["fuel_percentage"] -= fuel_consumption_percentage
-                vehicle_info[vehicle_id]["expected_fuel_percentage"] -= fuel_consumption_percentage
-                """
-                # Get the geographic coordinates of the vehicle
-                pos_x, pos_y = traci.vehicle.getPosition(vehicle_id)
 
-                # Convert the coord to lat and long
-                lat, lon = traci.simulation.convertGeo(pos_x, pos_y)
-                """
-                
                 # Get the amount of fuel in the tank
                 combus_percentage = vehicle_info[vehicle_id]["fuel_percentage"]
                 expected_percentage = vehicle_info[vehicle_id]["expected_fuel_percentage"]
@@ -264,55 +235,20 @@ def run(sim_n):
                         }
                         vehicle_info[vehicle_id]["refuel_info"].append(refuel_info)
 
-                """
-                id_veh = vehicle_id + "_" + \
-                    str(vehicle_info[vehicle_id]["route_num"])
-                
-                # Dict for vehicle data
-                veh_data = {
-                    "uservehicle": {
-                        "id": id_veh,
-                        "vehicle_data": {
-                            "Tuple": [
-                                {
-                                    "pos": {
-                                        "long": lon,
-                                        "lat": lat
-                                    }
-                                },
-                                {
-                                    "time": data_incrementada_formatada
-                                },
-                                {
-                                    "Combustivel": "{:f}%".format(((tanque - sum(vehicle_info[vehicle_id]["consumption_steps"])) / tanque) * 100)
-                                }
-                            ]
-                        }
-                    }
-                }
-                """
-                
-                # Append the data from the vehicle to a list
-                # vehicle_data_list.append(veh_data)
-
-            # Ensure that the vehicle continues rerouting after refueling
-            # rerouting()
-
             step += 1
 
             # Condition to stop the simulation loop
             if step > 86400:                    
                 break
-    
+        
+        #Update simulation refuel event dicionaries
         for vehicle_id, info in vehicle_info.items():
             fuel_data_list.extend(info["refuel_info"])
 
         sorted_fuel_data = sorted(fuel_data_list, key=lambda x: (x["vehicle_id"]))
         
-        # Function that writes a json file containing the data from all the vehicle
-        #malkai(sorted_data)
         fuel_data_filename = f"vehicle_fueling_file_50_station_({sim_n}).json"
-        gabriel(sorted_fuel_data, fuel_data_filename)
+        fuel_data(sorted_fuel_data, fuel_data_filename)
         
                 
     finally:
@@ -320,8 +256,8 @@ def run(sim_n):
         # Close the simulation
         traci.close()
         sys.stdout.flush()
-
-for i in range(27, 31):
+# Loop for 30 data collection iterations
+for i in range(1, 31):
     if __name__ == "__main__":
         """Main entry point
         """
