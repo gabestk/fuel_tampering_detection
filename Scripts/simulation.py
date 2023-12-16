@@ -269,8 +269,8 @@ for i in range(1, 31):
             sumoBinary = checkBinary('sumo-gui')
 
         # Start traci connection and set the parameters
-        traci.start([sumoBinary, "-c", "osm.sumocfg", "--tripinfo-output",
-                    "tripinfo.xml", "--max-num-vehicles", "100", "--quit-on-end", "--start"])
+        traci.start([sumoBinary, "-c", "Sumo\osm.sumocfg", "--tripinfo-output",
+                    "Sumo/tripinfo.xml", "--max-num-vehicles", "100", "--quit-on-end", "--start"])
 
         # Start the simulation loop
         run(i)
